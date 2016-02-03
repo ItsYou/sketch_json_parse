@@ -45,7 +45,7 @@ function createHotspots(artboard, arg) {
 			var childSize = child.absoluteRect();
 			var targetName = child.name().startsWith('**');
 			// targetName needs to be redefined.
-			this[childName] = new HotSpot({
+			artboard[childName] = new HotSpot({
 				height: childSize.height(),
 				width: childSize.width(),
 				left: childSize.x() - 27,
