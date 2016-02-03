@@ -34,38 +34,39 @@ function HotSpot(args) {
 
 function createHotspots(artboard, arg) {
 	var children = arg.children();
-	// children is not a nested array/object.
-	// spits out layergroups and shapegroups as a 1 dimentional array
+
 	for(var i = 0; i < children.length(); i++) {
 		var child = children[i];
-		// need a method to find children of layergroup(child).
+
 		if(':: Content' == child.name() || ':: Header' == child.name() || ':: Footer' == child.name()) {
-			// indexOf or includes does not work as intended in cocoascript for some reason.
+
 			var childName = child.name().replace(/\W/g, '').toLowerCase();
 			var childSize = child.absoluteRect();
 			var innerLayers = child.children();
 
-			for(var x = 0; x < innerLayers.length(); x++){
-				if(innerLayers[x].name().startsWith('**')){
-					var target = innerLayers[x];
 
-					artboard[childName] = [];
-					artboard[childName].push(new HotSpot({
-						height: target.absoluteRect().height(),
-						width: target.absoluteRect().width(),
-						left: target.absoluteRect().x() - 27,
-						top: target.absoluteRect().y() - 102,
-						target: target.name().match(/\w+/g).pop().toLowerCase()
-					}));
-				}
-			}
-			// targetName needs to be redefined.
-
+			getInnerLayer(artboard, childName, innerLayers);
 
 		}
 	}
 }
 
+function getInnerLayer(artboard, childName, layers) {
+	for(var x = 0; x < layers.length(); x++){
+		if(layers[x].name().startsWith('**')){
+			var target = layers[x];
+
+			artboard[childName] = [];
+			artboard[childName].push(new HotSpot({
+				height: target.absoluteRect().height(),
+				width: target.absoluteRect().width(),
+				left: target.absoluteRect().x() - 27,
+				top: target.absoluteRect().y() - 102,
+				target: target.name().match(/\w+/g).pop().toLowerCase()
+			}));
+		}
+	}
+}
 function findSpecialLayers(artboards) {
 
 	var sections;
