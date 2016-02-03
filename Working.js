@@ -23,6 +23,7 @@ function ArtBoard(args) {
 	this.header = null;
 	this.footer = null;
 }
+
 function HotSpot(args) {
 	this.height = args.height;
 	this.width = args.width;
@@ -31,50 +32,47 @@ function HotSpot(args) {
 	this.target= args.target;
 }
 
-function findSpecialLayers(layers) {
+function createHotspots(artboard, arg) {
+	var children = arg.children();
+	// children is not a nested array/object.
+	// spits out layergroups and shapegroups as a 1 dimentional array
+	for(var i = 0; i < children.length(); i++) {
+		var child = children[i];
+		// need a method to find children of layergroup(child).
+		if(':: Content' == child.name() || ':: Header' == child.name() || ':: Footer' == child.name()) {
+			// indexOf or includes does not work as intended in cocoascript for some reason.
+			var childName = child.name().replace(/\W/g, '').toLowerCase();
+			var childSize = child.absoluteRect();
+			var targetName = child.name().startsWith('**');
+			// targetName needs to be redefined.
+			this[childName] = new HotSpot({
+				height: childSize.height(),
+				width: childSize.width(),
+				left: childSize.x() - 27,
+				top: childSize.y() - 102,
+				target: targetName
+			});
+		}
+	}
+}
+
+function findSpecialLayers(artboards) {
 
 	var sections;
 	var artboard;
-	var page = _.forEach(layers, function(layer) {
-		if([':: Content', ':: Footer', ':: Header'].includes(layer.name())) {
-			sections = artboard.children();
-			if(sections.name().startsWith('**')){
-				var sectionType = sections.name().replace(/([A-Z])\w+/g, '').toLowerCase();
-				sections.saveArtboardOrSlice_toFile("~/desktop/"+sectionType+".png");
-				page[sectionType] = {
-					hotspots: []
-				};
-				page[sectionType].hotspots.push(new HotSpot({
-					height: sections.absoluteRect().height(),
-					width: sections.absoluteRect().width(),
-					left: sections.absoluteRect().x() - 27,
-					top: sections.absoluteRect().y() - 102,
-					target: sections.name().replace(/([A-Z])\w+/g, '')
-				}));
-			}
-
-			return page;
-		}
-	});
-	// for each group passed save to the desktop
-	// for (var i=0; i<layers.length(); i++) {
-	//
-	// 	var layer = layers.objectAtIndex(i),
-	// 		layerName = layer.name().toString();
-	//
-	// 	// check to see if the strig contains "::"
-	// 	if(layerName.indexOf('::') == 0){
-	// 		log('this is true')
-	// 	}
-	// 	else {
-	// 		log('this is not true')
-	// 	}
-	//
-	// 	log(layer.name())
-	//
-	// }
+	var artboardArray = [];
+	for (var i = 0; i < artboards.length(); i++) {
+		artboard = artboards.objectAtIndex(i);
+		artboardName = artboard.name().replace(/\W*/, '').toLowerCase();
+		var abObject = new ArtBoard({ name: artboardName });
+		createHotspots(abObject, artboard);
+		artboardArray.push(abObject);
+	}
+	log(artboardArray);
+	return artboardArray;
 
 }
+
 
 findSpecialLayers(artboards);
 
