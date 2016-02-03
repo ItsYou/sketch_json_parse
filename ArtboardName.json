@@ -1,0 +1,40 @@
+
+{
+  "content": {
+    "hotSpots": [
+      {
+        "animate": false,
+        "height": 121,
+        "left": 8,
+        "target": "dept-outs-not-scanned-swipe-content",
+        "top": 8,
+        "width": 304
+      }
+    ],
+    "img": "app/demos/images/availability/dept-outs-not-scanned-content.png"
+  },
+
+
+  "footer": null,
+
+
+  "header": {
+    "height": 84,
+     "hotSpots": [
+        {
+          "animate": false,
+          "height": 35,
+          "left": 6,
+          "target": "outs-not-scanned-content",
+          "top": 35,
+          "width": 35
+        }
+    ],
+    "img": "app/demos/images/availability/dept-outs-not-scanned-header.png"
+  },
+  "type": "standard"
+}
+
+
+
+
