@@ -1,4 +1,4 @@
-require('lodash');
+require('functions');
 // document setup
 var
 	doc = context.document,
@@ -39,14 +39,12 @@ function createHotspots(artboard, arg) {
 		var child = children[i];
 
 		if(':: Content' == child.name() || ':: Header' == child.name() || ':: Footer' == child.name()) {
-
+			// indexOf or includes() does not work as intended with cocoascript
 			var childName = child.name().replace(/\W/g, '').toLowerCase();
 			var childSize = child.absoluteRect();
 			var innerLayers = child.children();
 
-
 			getInnerLayer(artboard, childName, innerLayers);
-
 		}
 	}
 }
@@ -67,6 +65,7 @@ function getInnerLayer(artboard, childName, layers) {
 		}
 	}
 }
+
 function findSpecialLayers(artboards) {
 
 	var sections;
@@ -77,7 +76,8 @@ function findSpecialLayers(artboards) {
 		artboardName = artboard.name().replace(/\W*/, '').toLowerCase();
 		var abObject = new ArtBoard({ name: artboardName });
 		createHotspots(abObject, artboard);
-		artboardArray.push(abObject);
+		artboardArray.push(JSON.stringify(abObject));
+		saveJsonToFile(JSON.stringify(abObject), '/' + abObject.name + '.json')
 	}
 	log(artboardArray);
 	return artboardArray;
@@ -90,7 +90,15 @@ findSpecialLayers(artboards);
 //======================================================================================== Find Special Layers !
 
 
+var writeTextToFile = function(text, filePath) {
+    var t = [NSString stringWithFormat:@"%@", text],
+    f = [NSString stringWithFormat:@"%@", filePath];
+    return [t writeToFile:f atomically:true encoding:NSUTF8StringEncoding error:nil];
+}
 
+var saveJsonToFile = function(jsonObj, filePath) {
+    writeTextToFile(stringify(jsonObj), filePath);
+}
 
 
 
