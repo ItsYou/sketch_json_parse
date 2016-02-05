@@ -11,25 +11,6 @@ var
 	arrayOfArtBoards = [];
 
 
-function findSpecialLayers(artboards) {
-
-	var sections;
-	var artboard;
-	var artboardArray = [];
-	for (var i = 0; i < artboards.length(); i++) {
-		artboard = artboards.objectAtIndex(i);
-		artboardName = artboard.name().replace(/\W*/, '').toLowerCase();
-		var abObject = new ArtBoard({ name: artboardName });
-		createHotspots(abObject, artboard);
-		artboardArray.push(abObject);
-		var abString = JSON.stringify(abObject);
-		var result = NSString.stringWithString_(abString);
-
-		result.dataUsingEncoding_(NSUTF8StringEncoding).writeToFile_atomically_(path + abObject.name + '.json', true)
-	}
-	return artboardArray;
-}
-
 function ArtBoard(args) {
 	this.name = args.name;
 	this.content = null;
@@ -45,6 +26,28 @@ function HotSpot(args) {
 	this.target= args.target;
 }
 
+function findSpecialLayers(artboards) {
+
+	var sections;
+	var artboard;
+	var artboardArray = [];
+	for (var i = 0; i < artboards.length(); i++) {
+		artboard = artboards.objectAtIndex(i);
+		artboardName = artboard.name().replace(/\W*/, '').toLowerCase();
+		var abObject = new ArtBoard({ name: artboardName });
+		createHotspots(abObject, artboard);
+		artboardArray.push(abObject);
+		var pageName = abObject.name;
+		delete abObject["name"];
+		var abString = JSON.stringify(abObject, null, '\t');
+		var result = NSString.stringWithString_(abString);
+
+		result.dataUsingEncoding_(NSUTF8StringEncoding).writeToFile_atomically_(path + pageName + '.json', true)
+	}
+	return artboardArray;
+}
+
+
 function createHotspots(artboard, arg) {
 	var children = arg.children();
 
@@ -56,26 +59,29 @@ function createHotspots(artboard, arg) {
 			var childName = child.name().replace(/\W/g, '').toLowerCase();
 			var childSize = child.absoluteRect();
 			var innerLayers = child.children();
-			var imgPath = artboard.name.toUpperCase() + '_' + childName +".png";
-			getInnerLayer(artboard, childName, innerLayers, imgPath);
-			log(doc.saveArtboardOrSlice_toFile(child.absoluteRect(),img_path + imgPath))
+			var imgName = artboard.name.toUpperCase() + '_' + childName;
+			artboard[childName] = {};
+			artboard[childName]["height"] = child.absoluteRect().height()
+			artboard[childName]["hotSpots"] = [];
+			artboard[childName]["img"] = "images/" + imgName + ".png";
+			getInnerLayer(artboard, child, childName, innerLayers, imgName);
+			log(img_path + imgName)
+			log(doc.saveArtboardOrSlice_toFile(child.absoluteRect(), img_path + imgName + '.png'))
 		}
 	}
 }
 
-function getInnerLayer(artboard, childName, layers, img) {
+function getInnerLayer(artboard, parent, childName, layers, img) {
 	for(var x = 0; x < layers.length(); x++){
 
 		if(layers[x].name().startsWith('**')){
 			var target = layers[x];
-
-			artboard[childName] = [];
-			artboard[childName].push(new HotSpot({
+				artboard[childName]["hotSpots"].push(new HotSpot({
 				height: target.absoluteRect().height(),
 				width: target.absoluteRect().width(),
 				left: target.absoluteRect().x() - 27,
 				top: target.absoluteRect().y() - 102,
-				target: "images/" + img
+				target: artboard.name
 			}));
 
 		}
