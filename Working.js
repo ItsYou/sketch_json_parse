@@ -1,4 +1,5 @@
-require('functions');
+var path = "/Users/"+ NSUserName() + "/Desktop/sketch_export/";
+var img_path = "/Users/"+ NSUserName() +"/Desktop/sketch_export/images/";
 // document setup
 var
 	doc = context.document,
@@ -9,14 +10,26 @@ var
 	arrayOfImages = [],
 	arrayOfArtBoards = [];
 
-//======================================================================================== Find Special Layers
 
-/*
-	This fn loops through all the layers and finds
-	the ones with specail charecters in their name
-*/
+function findSpecialLayers(artboards) {
 
-// save out all the artboards with the correct name.
+	var sections;
+	var artboard;
+	var artboardArray = [];
+	for (var i = 0; i < artboards.length(); i++) {
+		artboard = artboards.objectAtIndex(i);
+		artboardName = artboard.name().replace(/\W*/, '').toLowerCase();
+		var abObject = new ArtBoard({ name: artboardName });
+		createHotspots(abObject, artboard);
+		artboardArray.push(abObject);
+		var abString = JSON.stringify(abObject);
+		var result = NSString.stringWithString_(abString);
+
+		result.dataUsingEncoding_(NSUTF8StringEncoding).writeToFile_atomically_(path + abObject.name + '.json', true)
+	}
+	return artboardArray;
+}
+
 function ArtBoard(args) {
 	this.name = args.name;
 	this.content = null;
@@ -43,14 +56,16 @@ function createHotspots(artboard, arg) {
 			var childName = child.name().replace(/\W/g, '').toLowerCase();
 			var childSize = child.absoluteRect();
 			var innerLayers = child.children();
-
-			getInnerLayer(artboard, childName, innerLayers);
+			var imgPath = artboard.name.toUpperCase() + '_' + childName +".png";
+			getInnerLayer(artboard, childName, innerLayers, imgPath);
+			log(doc.saveArtboardOrSlice_toFile(child.absoluteRect(),img_path + imgPath))
 		}
 	}
 }
 
-function getInnerLayer(artboard, childName, layers) {
+function getInnerLayer(artboard, childName, layers, img) {
 	for(var x = 0; x < layers.length(); x++){
+
 		if(layers[x].name().startsWith('**')){
 			var target = layers[x];
 
@@ -60,214 +75,11 @@ function getInnerLayer(artboard, childName, layers) {
 				width: target.absoluteRect().width(),
 				left: target.absoluteRect().x() - 27,
 				top: target.absoluteRect().y() - 102,
-				target: target.name().match(/\w+/g).pop().toLowerCase()
+				target: "images/" + img
 			}));
+
 		}
 	}
 }
 
-function findSpecialLayers(artboards) {
-
-	var sections;
-	var artboard;
-	var artboardArray = [];
-	for (var i = 0; i < artboards.length(); i++) {
-		artboard = artboards.objectAtIndex(i);
-		artboardName = artboard.name().replace(/\W*/, '').toLowerCase();
-		var abObject = new ArtBoard({ name: artboardName });
-		createHotspots(abObject, artboard);
-		artboardArray.push(JSON.stringify(abObject));
-		saveJsonToFile(JSON.stringify(abObject), '/' + abObject.name + '.json')
-	}
-	log(artboardArray);
-	return artboardArray;
-
-}
-
-
 findSpecialLayers(artboards);
-
-//======================================================================================== Find Special Layers !
-
-
-var writeTextToFile = function(text, filePath) {
-    var t = [NSString stringWithFormat:@"%@", text],
-    f = [NSString stringWithFormat:@"%@", filePath];
-    return [t writeToFile:f atomically:true encoding:NSUTF8StringEncoding error:nil];
-}
-
-var saveJsonToFile = function(jsonObj, filePath) {
-    writeTextToFile(stringify(jsonObj), filePath);
-}
-
-
-
-// function checkLayerName(name){
-
-// 	// for each group passed save to the desktop
-// 	for (var i=0; i<layers.length(); i++) {
-// 	}
-
-
-// }
-
-
-
-
-// function stripStaticNames(name){
-
-// 	// for each group passed save to the desktop
-// 	for (var i=0; i<layers.length(); i++) {
-
-// 		var layer = layers.objectAtIndex(i),
-// 			layerName = layer.name().toString();
-
-// 		// check to see if the strig contains "::"
-// 		if(layerName.indexOf('::') == 0){
-// 			log('this is true')
-// 		}
-// 		else {
-// 			log('this is not true')
-// 		}
-
-// 		log(layer.name())
-
-// 	}
-
-// 	// if the string has
-
-// }
-
-
-
-
-
-
-// // image data needs to be an array
-
-
-// function saveOutImages(imageData){
-
-// }
-
-// function createLayerData(layerData){
-
-// }
-
-
-// function mapData(mixedData) {
-//     return user.friendIds.map(function(id) {
-//         return usersById[id].name
-//     })
-// }
-
-
-
-
-
-//======================================================================================== Save Out Images
-
-// create all the images / store their names here
-var allImages = saveToImage(artboards)
-
-// save out all the artboards with the correct name.
-function saveToImage(images){
-
-	var arrayOfImages = [];
-
-	// for each AB passed save to the desktop
-	for (var i=0; i<images.count(); i++) {
-
-		// save the data we need and parse down to the actual name
-		var imagesPassed = images[i].toString(),
-	            startPos = imagesPassed.indexOf('>') + 1,
-	              endPos = imagesPassed.indexOf('(', startPos),
-	        imagesNamed = imagesPassed.substring(startPos,endPos).replace(/\s+/g, '');
-	        arrayOfImages.push(imagesNamed);
-
-	    // save out the AB to the desktop
-		doc.saveArtboardOrSlice_toFile(images[i],"~/desktop/"+imagesNamed+".png")
-
-		log(imagesNamed)
-	}
-	log('ALL NAME: ' + JSON.stringify(arrayOfImages));
-
-	return arrayOfImages;
-}
-
-//======================================================================================== Save Out Images !
-
-
-
-
-
-//======================================================================================== Find Later Type
-
-//---  Types of layers that can be selected
-// MSLayerGroup
-// MSShapeGroup
-// MSShapePathLayer
-// MSTextLayer
-// MSArtboardGroup
-
-
-var findLayerType = function(layerType, containerLayer) {
-
-    // Filter layers using NSPredicate
-	var scope = (typeof containerLayer !== 'undefined') ? [containerLayer children] : [[doc currentPage] children],
-		predicate = NSPredicate.predicateWithFormat("(className == %@)", layerType),
-		layers = [scope filteredArrayUsingPredicate:predicate];
-
-		// testLog(layers, "this is in the function");
-
-	// Deselect current selection
-	[[doc currentPage] deselectAllLayers]
-
-	// Loop through filtered layers and select them
-	var loop = [layers objectEnumerator], layer;
-	while (layer = [loop nextObject]) {
-		[layer select:true byExpandingSelection:true]
-	}
-	log([layers count] + " " + layerType + "s selected")
-
-	return layers;
-}
-
-// Select all Artboards in current page
-
-
-//======================================================================================== Find Later Type
-
-var layers = findLayerType("MSLayerGroup");
-
-
-// testLog(layers, "after the function runs");
-
-
-
-
-
-
-
-
-
-
-
-
-//======================================================================================== Test Log
-
-function testLog(output, title){
-	var logLine = ' =================================================================================== ' + title;
-	log(logLine + output + logLine);
-}
-
-//======================================================================================== Test Log
-
-
-// Art Boards | testLog(artboards);
-// Document   | testLog(doc);
-// Page       | testLog(page);
-// Pages      | testLog(pages);
-// Selection  | testLog(selection);
-// All Images | testLog(allImages);
-// testLog();
