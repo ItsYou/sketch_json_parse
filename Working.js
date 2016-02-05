@@ -53,7 +53,8 @@ function createHotspots(artboard, arg) {
 
 	for(var i = 0; i < children.length(); i++) {
 		var child = children[i];
-
+		// children is 1 dimentional.
+		// folders and layers are coexisting in one array.
 		if(':: Content' == child.name() || ':: Header' == child.name() || ':: Footer' == child.name()) {
 			// indexOf or includes() does not work as intended with cocoascript
 			var childName = child.name().replace(/\W/g, '').toLowerCase();
@@ -75,13 +76,14 @@ function getInnerLayer(artboard, parent, childName, layers, img) {
 	for(var x = 0; x < layers.length(); x++){
 
 		if(layers[x].name().startsWith('**')){
+			var targetRoute = layers[x].name().match(/\w+/g)[0];
 			var target = layers[x];
 				artboard[childName]["hotSpots"].push(new HotSpot({
 				height: target.absoluteRect().height(),
 				width: target.absoluteRect().width(),
 				left: target.absoluteRect().x() - 27,
 				top: target.absoluteRect().y() - 102,
-				target: artboard.name
+				target: targetRoute
 			}));
 
 		}
